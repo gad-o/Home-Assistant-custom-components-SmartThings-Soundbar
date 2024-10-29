@@ -27,29 +27,20 @@ class SoundbarApi:
         REQUEST_HEADERS = {"Authorization": "Bearer " + API_KEY}
         DEVICE_ID = entity._device_id
         API_DEVICE = API_DEVICES + DEVICE_ID
-        API_DEVICE_STATUS = API_DEVICE + "/states"
+        API_DEVICE_STATUS = API_DEVICE + "/components/main/status"
         API_COMMAND = API_DEVICE + "/commands"
         cmdurl = requests.post(API_COMMAND, data=COMMAND_REFRESH, headers=REQUEST_HEADERS)
         resp = requests.get(API_DEVICE_STATUS, headers=REQUEST_HEADERS)
         data = resp.json()
 
-        device_volume = data['main']['volume']['value']
+        device_volume = data['audioVolume']['volume']['value']
         device_volume = min(int(device_volume) / entity._max_volume, 1)
-        switch_state = data['main']['switch']['value']
-        playback_state = data['main']['playbackStatus']['value']
-        device_source = data['main']['inputSource']['value']
-        device_all_sources = json.loads(data['main']['supportedInputSources']['value'])
-        device_muted = data['main']['mute']['value'] != "unmuted"
+        switch_state = data['switch']['switch']['value']
+        device_source = data['samsungvd.audioInputSource']['inputSource']['value']
+        device_all_sources = json.loads(data['samsungvd.audioInputSource']['supportedInputSources']['value'])
+        device_muted = data['audioMute']['mute']['value'] != "unmuted"
 
         if switch_state == "on":
-            if device_source.lower() in CONTROLLABLE_SOURCES:
-                if playback_state == "playing":
-                    entity._state = STATE_PLAYING
-                elif playback_state == "paused":
-                    entity._state = STATE_PAUSED
-                else:
-                    entity._state = STATE_ON
-            else:
                 entity._state = STATE_ON
         else:
             entity._state = STATE_OFF
